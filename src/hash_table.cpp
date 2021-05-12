@@ -18,26 +18,65 @@ namespace itis {
     }
 
     // Tip: allocate hash-table buckets
+    buckets_.resize(capacity);
   }
 
   std::optional<std::string> HashTable::Search(int key) const {
     // Tip: compute hash code (index) and use linear search
+    int index = hash(key);
+    auto bucket = buckets_[index];
+    if (!bucket.empty()) {
+    for (auto pair : bucket) {
+        if (pair.first == key) {
+            return pair.second;
+            }
+        }
+    }
     return std::nullopt;
   }
 
   void HashTable::Put(int key, const std::string &value) {
     // Tip 1: compute hash code (index) to determine which bucket to use
     // Tip 2: consider the case when the key exists (read the docs in the header file)
+    int index = hash(key);
+    if (buckets_[index].empty()) {
+        num_keys_++;
+        auto pair = std::pair<int, std::string>();
+        pair.first = key;
+        pair.second = value;
+        buckets_[index].push_back(pair);
+    }
+    else
+    {
+        auto pair = std::pair<int, std::string>();
+        pair.first = key;
+        pair.second = value;
+        buckets_[index].push_back(pair);
+    }
 
     if (static_cast<double>(num_keys_) / buckets_.size() >= load_factor_) {
       // Tip 3: recompute hash codes (indices) for key-value pairs (create a new hash-table)
       // Tip 4: use utils::hash(key, size) to compute new indices for key-value pairs
+        utils::hash(key,buckets_.size());
+        buckets_.resize(buckets_.capacity() * HashTable::kGrowthCoefficient);
     }
   }
 
   std::optional<std::string> HashTable::Remove(int key) {
     // Tip 1: compute hash code (index) to determine which bucket to use
     // TIp 2: find the key-value pair to remove and make a copy of value to return
+    int index = hash(key);
+    auto bucket = buckets_[index];
+    if (!bucket.empty()) {
+        std::pair<int, std::string> remove;
+        for(auto pair: bucket) {
+            if (pair.first == key) {
+                remove = pair;
+                bucket.remove(pair);
+                return remove.second;
+            }
+        }
+    }
     return std::nullopt;
   }
 
